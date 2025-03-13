@@ -1,5 +1,6 @@
 
 from .scheduler_dev import DDIMSchedulerDev
+import torch
 from .inversion import NegativePromptInversion, NullInversion, DirectInversion
 from .attention_control import EmptyControl, AttentionStore, make_controller
 from .p2p_guidance_forward import p2p_guidance_forward, direct_inversion_p2p_guidance_forward, direct_inversion_p2p_guidance_forward_add_target,p2p_guidance_forward_single_branch
@@ -14,13 +15,14 @@ class P2PEditor:
         self.device=device
         self.num_ddim_steps=num_ddim_steps
         # init model
+        model = "stabilityai/stable-diffusion-xl-base-1.0" #"CompVis/stable-diffusion-v1-4"
         self.scheduler = DDIMSchedulerDev(beta_start=0.00085,
                                     beta_end=0.012,
                                     beta_schedule="scaled_linear",
                                     clip_sample=False,
                                     set_alpha_to_one=False)
         self.ldm_stable = StableDiffusionPipeline.from_pretrained(
-            "CompVis/stable-diffusion-v1-4", scheduler=self.scheduler).to(device)
+            model, scheduler=self.scheduler, torch_dtype=torch.float32).to(device)
         self.ldm_stable.scheduler.set_timesteps(self.num_ddim_steps)
 
         
